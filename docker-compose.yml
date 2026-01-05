@@ -1,0 +1,380 @@
+---
+volumes:
+  traefik_data:
+  portainer_data:
+  n8n_data:
+  db_data:
+  webui_data:
+  nodered_data:
+  codeprojectai_datastore:
+  codeprojectai_modules:
+  codeprojectai_models:
+  ollama_data:
+
+networks:
+  traefik-public:
+    external: true
+  agent-network:
+    attachable: true
+  default:
+
+services:
+  # Traefik Reverse Proxy
+  traefik:
+    image: ${TRAEFIK_IMAGE:-traefik:latest}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.constraints=Label(`traefik.constraint-label`, `traefik-public`)"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.${HTTP_ENTRYPOINT:-http}.address=:${HTTP_PORT:-80}"
+      - "--entrypoints.${HTTP_ENTRYPOINT:-http}.http.redirections.entryPoint.to=${HTTPS_ENTRYPOINT:-https}"
+      - "--entrypoints.${HTTP_ENTRYPOINT:-http}.http.redirections.entrypoint.scheme=${HTTPS_ENTRYPOINT:-https}"
+      - "--entrypoints.${HTTPS_ENTRYPOINT:-https}.address=:${HTTPS_PORT:-443}"
+      - "--experimental.plugins.ldapAuth.modulename=github.com/wiltonsr/ldapAuth"
+      - "--experimental.plugins.ldapAuth.version=v0.1.11"
+      - "--certificatesresolvers.le-dns.acme.dnschallenge.provider=hurricane"
+      - "--certificatesresolvers.le-dns.acme.dnschallenge.propagation.delayBeforeChecks=150s"
+      - "--certificatesresolvers.le-dns.acme.email=${SSL_EMAIL}"
+      - "--certificatesresolvers.le-dns.acme.storage=/letsencrypt/acme-dns.json"
+      - "--serverstransport.insecureskipverify=true"
+      - "--accesslog"
+      - "--log"
+      - "--api"
+      - "--ping"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.traefik-https.rule=Host(`traefik.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.traefik-https.entrypoints=${HTTPS_ENTRYPOINT:-https}
+      - traefik.http.routers.traefik-https.tls=true
+      - traefik.http.routers.traefik-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.traefik-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.traefik-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.traefik-https.loadbalancer.server.port=${TRAEFIK_DASHBOARD_PORT:-8080}
+    environment:
+      - HURRICANE_TOKENS=${HURRICANE_TOKENS:-}
+    ports:
+      - "${HTTP_PORT:-80}:${HTTP_PORT:-80}"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}"
+    networks:
+      - traefik-public
+    volumes:
+      - traefik_data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # Portainer Container Management
+  portainer:
+    image: ${PORTAINER_IMAGE:-portainer/portainer-ce:latest}
+    restart: unless-stopped
+    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.portainer-https.rule=Host(`portainer.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.portainer-https.entrypoints=https
+      - traefik.http.routers.portainer-https.tls=true
+      - traefik.http.routers.portainer-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.portainer-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.portainer-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+
+  # PostgreSQL Database for N8N
+  n8n-db:
+    image: ${POSTGRES_IMAGE:-postgres:15}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: n8n
+    volumes:
+      - db_data:/var/lib/postgresql
+      - ./data/postgres-backups:/backups
+    networks:
+      - traefik-public
+      - default
+
+  # N8N Workflow Automation
+  n8n:
+    image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:latest}
+    restart: unless-stopped
+    depends_on:
+      n8n-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.entrypoints=https
+      - traefik.http.routers.n8n.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.n8n.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.n8n.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.n8n.loadbalancer.server.port=5678
+      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n.headers.SSLHost=n8n.${DOMAIN_NAME}
+      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n.headers.STSPreload=true
+      - traefik.http.routers.n8n.middlewares=n8n@docker
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_DATABASE=n8n
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST=n8n.${DOMAIN:-app.example.com}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.${DOMAIN:-app.example.com}/
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${GENERIC_TIMEZONE}
+      # Language and Localization
+      - LANGUAGE=${LANGUAGE:-en}
+      - LANG=${LANG:-en_US.UTF-8}
+      - LC_ALL=${LC_ALL:-en_US.UTF-8}
+    networks:
+      - traefik-public
+      - default
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/files
+
+  # MCP Gateway
+  mcp-gateway:
+    image: ${MCP_GATEWAY_IMAGE}
+    restart: unless-stopped
+    command:
+      - --servers=${MCP_SERVERS:-duckduckgo,google-flights,playwright}
+      - --transport=streaming
+      - --port=8811
+    environment:
+      - DOCKER_MCP_IN_CONTAINER=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/mcp:/root/.docker/mcp:ro
+      - ./data/mcp-config:/app/config
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.mcpgw-https.rule=Host(`mcp.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.mcpgw-https.entrypoints=https
+      - traefik.http.routers.mcpgw-https.tls=true
+      - traefik.http.routers.mcpgw-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.mcpgw-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.mcpgw-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.mcpgw-https.loadbalancer.server.port=8811
+      - traefik.http.middlewares.mcpgw-https.headers.accesscontrolallowcredentials=true
+
+  # Docker Model Runner HTTP Proxy
+  ollama-proxy:
+    image: ${NGINX_IMAGE}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./nginx-ollama.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - traefik-public
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.ollama-https.rule=Host(`oi.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.ollama-https.entrypoints=https
+      - traefik.http.routers.ollama-https.tls=true
+      - traefik.http.routers.ollama-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.ollama-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.ollama-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.ollama-https.loadbalancer.server.port=80
+
+  # Echo IP Service with LDAP Auth
+  echo:
+    image: ${ECHO_IMAGE}
+    restart: unless-stopped
+    # healthcheck not possible for this image
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    networks:
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.echo-https.rule=Host(`echo.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.echo-https.entrypoints=https
+      - traefik.http.routers.echo-https.tls=true
+      - traefik.http.routers.echo-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.echo-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.echo-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.echo-https.loadbalancer.server.port=8080
+      - traefik.http.routers.echo-https.middlewares=ldap_auth_mail
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.Enabled=true
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.LogLevel=DEBUG
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.Url=${LDAP_URL}
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.Port=${LDAP_PORT}
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.BaseDn=${LDAP_BASEDN}
+      - traefik.http.middlewares.ldap_auth_mail.plugin.ldapAuth.Attribute=${LDAP_ATTRIBUTE}
+
+  # CodeProject.AI Computer Vision (x86_64 only)
+  codeprojectai:
+    image: ${CODEPROJECTAI_IMAGE:-codeproject/ai-server:latest}
+    restart: unless-stopped
+    platform: linux/amd64  # Force x86_64 platform for Rosetta
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:32168/v1/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - TZ=${GENERIC_TIMEZONE}
+    volumes:
+      - codeprojectai_datastore:/app/datastore
+      - codeprojectai_modules:/app/modules
+      - codeprojectai_models:/app/models
+      - ./local-files:/files
+    networks:
+      - traefik-public
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.codeprojectai-https.rule=Host(`codeprojectai.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.codeprojectai-https.entrypoints=https
+      - traefik.http.routers.codeprojectai-https.tls=true
+      - traefik.http.routers.codeprojectai-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.codeprojectai-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.codeprojectai-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.codeprojectai.loadbalancer.server.port=32168
+
+  # Node-RED Flow-based Programming
+  nodered:
+    image: ${NODERED_IMAGE:-nodered/node-red:latest}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:1880 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - TZ=${GENERIC_TIMEZONE}
+    volumes:
+      - nodered_data:/data
+      - ./local-files:/files
+    networks:
+      - traefik-public
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.nodered-https.rule=Host(`nodered.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.nodered-https.entrypoints=https
+      - traefik.http.routers.nodered-https.tls=true
+      - traefik.http.routers.nodered-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.nodered-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.nodered-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.nodered.loadbalancer.server.port=1880
+
+  # Open WebUI for Ollama
+  webui:
+    image: ${WEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      # Docker Model Runner via nginx proxy
+      - OPENAI_API_BASE_URL=http://ollama-proxy/ollama/v1
+      - OLLAMA_BASE_URL=http://ollama-proxy/ollama
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-not-needed}
+      - ENABLE_OPENAI_API=${ENABLE_OPENAI_API:-true}
+      - ENABLE_OLLAMA_API=${ENABLE_OLLAMA_API:-true}
+      - WEBUI_AUTH=${WEBUI_AUTH:-true}
+      # Language and Localization
+      - LANGUAGE=${LANGUAGE:-en}
+      - LANG=${LANG:-en_US.UTF-8}
+      - LC_ALL=${LC_ALL:-en_US.UTF-8}
+      - DEFAULT_LOCALE=${LANGUAGE:-en}
+      # Performance and security enhancements
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-$(openssl rand -hex 32)}
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-false}
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-user}
+      - ENABLE_COMMUNITY_SHARING=${ENABLE_COMMUNITY_SHARING:-false}
+      - ENABLE_MESSAGE_RATING=${ENABLE_MESSAGE_RATING:-true}
+      - TASK_MODEL=${TASK_MODEL:-}
+      - TITLE_GENERATION_PROMPT_TEMPLATE=${TITLE_GENERATION_PROMPT_TEMPLATE:-}
+      # LDAP Authentication Configuration
+      - ENABLE_LDAP_AUTH=${ENABLE_LDAP_AUTH:-false}
+      - LDAP_SERVER_URL=${LDAP_URL:-}
+      - LDAP_SERVER_PORT=${LDAP_PORT:-389}
+      - LDAP_BIND_DN=${LDAP_BIND_DN:-}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD:-}
+      - LDAP_USER_BASE=${LDAP_BASEDN:-}
+      - LDAP_USER_FILTER=${LDAP_USER_FILTER:-(uid=%s)}
+      - LDAP_USER_ATTRIBUTE=${LDAP_ATTRIBUTE:-uid}
+      - LDAP_EMAIL_ATTRIBUTE=${LDAP_EMAIL_ATTRIBUTE:-mail}
+      - LDAP_DISPLAY_NAME_ATTRIBUTE=${LDAP_DISPLAY_NAME_ATTRIBUTE:-displayName}
+    volumes:
+      - webui_data:/app/backend/data
+    networks:
+      - traefik-public
+      - default
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.routers.webui-https.rule=Host(`webui.${DOMAIN:-app.example.com}`)
+      - traefik.http.routers.webui-https.entrypoints=https
+      - traefik.http.routers.webui-https.tls=true
+      - traefik.http.routers.webui-https.tls.certresolver=${CERT_RESOLVER}
+      - traefik.http.routers.webui-https.tls.domains[0].main=${DOMAIN:-app.example.com}
+      - traefik.http.routers.webui-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
+      - traefik.http.services.webui.loadbalancer.server.port=8080

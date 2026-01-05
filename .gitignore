@@ -1,0 +1,44 @@
+# Environment files
+.env
+
+# Docker volumes and data
+local-files/
+backups/
+data/
+legacy/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# IDE files
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Docker
+.dockerignore

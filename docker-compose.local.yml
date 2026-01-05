@@ -1,0 +1,75 @@
+---
+# Local Development Overrides
+# Use with: docker compose -f docker-compose.yml -f docker-compose.local.yml up
+
+services:
+  # Traefik - Expose dashboard locally
+  traefik:
+    ports:
+      - "8081:8080"  # Traefik dashboard on 8081 to avoid conflict with WebUI
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.constraints=Label(`traefik.constraint-label`, `traefik-public`)"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--log.level=INFO"  # Reduce log verbosity
+      - "--accesslog=false"  # Disable access logs for local dev
+      - "--api"
+      - "--ping"
+
+  # WebUI - Direct local access
+  webui:
+    ports:
+      - "8080:8080"  # Direct access to WebUI
+    environment:
+      - WEBUI_AUTH=false  # Disable auth for local development
+      - ENABLE_SIGNUP=true  # Allow signup for local dev
+      - DEFAULT_USER_ROLE=admin  # Make first user admin
+
+  # N8N - Direct local access
+  n8n:
+    ports:
+      - "5678:5678"  # Direct access to N8N
+    environment:
+      - N8N_SECURE_COOKIE=false  # Allow HTTP cookies for local dev
+      - N8N_HOST=localhost  # Use localhost for local dev
+      - N8N_PROTOCOL=http  # Use HTTP for local dev
+      - WEBHOOK_URL=http://localhost:5678/
+
+  # Portainer - Direct local access
+  portainer:
+    ports:
+      - "9000:9000"  # Direct access to Portainer
+
+  # MCP Gateway - Direct local access
+  mcp-gateway:
+    ports:
+      - "8811:8811"  # Direct access to MCP Gateway
+
+  # Node-RED - Direct local access
+  nodered:
+    ports:
+      - "1880:1880"  # Direct access to Node-RED
+    profiles:
+      - x86_64  # Only start on x86_64 systems
+
+  # Ollama Proxy - Direct local access (renamed from ollama-socat)
+  ollama-proxy:
+    ports:
+      - "8082:80"  # Ollama proxy on 8082 to avoid conflicts
+
+  # CodeProject.AI - Direct local access (Intel only)
+  codeprojectai:
+    ports:
+      - "32168:32168"  # Direct access to CodeProject.AI
+    profiles:
+      - intel  # Only start on Intel systems
+
+  # PostgreSQL - Direct database access for development
+  n8n-db:
+    ports:
+      - "5432:5432"  # Direct database access
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust  # Allow local connections without password

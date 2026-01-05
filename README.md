@@ -10,7 +10,7 @@ A unified Docker infrastructure setup optimized for local macOS development with
 
 **USER RESPONSIBILITY**: You are solely responsible for:
 - Testing this software in your environment
-- Ensuring it meets your security requirements  
+- Ensuring it meets your security requirements
 - Backing up your data before use
 - Understanding the risks of running AI services locally
 
@@ -101,7 +101,7 @@ make quick-start
    ```bash
    # Check service health
    make health
-   
+
    # View service URLs
    make show-urls
    ```
@@ -196,6 +196,8 @@ Docker/
 │       ├── webui.db               # WebUI SQLite database
 │       ├── n8n_data/              # N8N Docker volume backup
 │       ├── webui_data/            # WebUI Docker volume backup
+│       ├── nodered_data/          # Node-RED Docker volume backup
+│       ├── codeprojectai_data/    # CodeProject.AI Docker volume backup
 │       └── traefik_ssl/           # SSL certificates backup
 └── README.md                       # This file
 ```
@@ -248,19 +250,36 @@ For production deployment with automatic SSL certificates:
 - `https://portainer.app.yourdomain.com` - Portainer
 - `https://traefik.app.yourdomain.com` - Traefik Dashboard
 
-## 💾 Data Storage
+## 💾 Data Storage & Backup
 
 ### Where Your Data Lives
-- **N8N workflows & credentials** → PostgreSQL database + `docker_n8n_data` volume
-- **WebUI conversations & prompts** → SQLite database + `docker_webui_data` volume  
-- **SSL certificates** → `docker_traefik_data` volume
+- **N8N workflows & credentials** → PostgreSQL database + `{folder-name}_n8n_data` volume
+- **WebUI conversations & prompts** → SQLite database + `{folder-name}_webui_data` volume
+- **SSL certificates** → `{folder-name}_traefik_data` volume
+- **Node-RED flows & settings** → `{folder-name}_nodered_data` volume
+- **CodeProject.AI models & config** → `{folder-name}_codeprojectai_data` volume
 - **Shared files** → `local-files/` directory (host-mounted)
 
 ### Backup System
 - **Uncompressed** (default): `make backup` - Faster, larger files
 - **Compressed**: `make backup COMPRESS=true` - Slower, smaller files
-- **Smart restore**: Auto-detects backup format
+- **Smart restore**: Auto-detects backup format and folder name
 - **Complete coverage**: Databases, volumes, configs, and files
+
+### Restore from Backup
+```bash
+# List available backups
+make list-backups
+
+# Restore specific backup
+make restore BACKUP=20240101_120000
+
+# Restore individual services
+make restore-service BACKUP=20240101_120000 SERVICE=nodered
+make restore-service BACKUP=20240101_120000 SERVICE=codeprojectai
+```
+
+**Available restore services**: `n8n`, `webui`, `traefik`, `nodered`, `codeprojectai`, `config`, `files`
 
 ## 🚫 Troubleshooting
 
@@ -374,9 +393,7 @@ The system uses **Let's Encrypt** with **Hurricane Electric DNS challenge**:
 - **[🚀 Complete Beginner's Guide](GETTING_STARTED.md)**: Step-by-step setup for newcomers
 - **[❓ Frequently Asked Questions](FAQ.md)**: Common questions and solutions
 - **[🏗️ System Architecture](ARCHITECTURE.md)**: How everything works together
-- **AI_WORKFLOW_SETUP_GUIDE.md**: Detailed guide for AI workflow automation
-- **ARENA_MODEL_TROUBLESHOOTING.md**: Troubleshooting arena mode issues
-- **OPENWEBUI_DOCKER_MODEL_RUNNER_FIX.md**: WebUI configuration notes
+- **[🔐 LDAP Authentication](LDAP_AUTHENTICATION.md)**: Enterprise LDAP configuration guide
 - **Makefile**: Advanced development commands
 
 ## 🆘 Getting Help
