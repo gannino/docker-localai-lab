@@ -264,12 +264,14 @@ services:
     restart: unless-stopped
     platform: linux/amd64  # Force x86_64 platform for Rosetta
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:32168/v1/status || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5000 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
     environment:
       - TZ=${GENERIC_TIMEZONE}
+      - CPAI_MODULE_ENABLE_YOLOV5=false
+      - CPAI_MODULE_ENABLE_OBJECTDETECTION=false
     volumes:
       - codeprojectai_datastore:/app/datastore
       - codeprojectai_modules:/app/modules
