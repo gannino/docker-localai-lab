@@ -470,9 +470,18 @@ list-backups: ## List available backups
 
 update: ## Update all images and restart services
 	@echo "🔄 Updating all images..."
-	@docker compose pull
-	@docker compose up -d
-	@echo "✅ Update complete"
+	@if [ -f .env ]; then \
+		source .env && \
+		export DOMAIN=$$SUBDOMAIN.$$DOMAIN_NAME && \
+		export HURRICANE_TOKENS=$$DOMAIN:$$HURRICANE_TOKENS_PASSWORD && \
+		docker compose pull && \
+		echo "🔄 Restarting services with new images..." && \
+		docker compose up -d && \
+		echo "✅ Update complete - services restarted with latest images"; \
+	else \
+		echo "Error: .env file not found. Run 'make beginner-setup' first."; \
+		exit 1; \
+	fi
 
 local-start: ## Start with local development overrides (direct port access)
 	@echo "🔧 Starting with local development configuration..."
