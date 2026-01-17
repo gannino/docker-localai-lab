@@ -207,6 +207,7 @@ ENABLE_SIGNUP=true   # LDAP + local accounts
 
 ## 📚 Documentation References
 - **README.md**: Complete setup guide
+- **ROADMAP.md**: Development roadmap and future features
 - **LDAP_AUTHENTICATION.md**: Enterprise LDAP configuration guide
 - **AI_WORKFLOW_SETUP_GUIDE.md**: N8N workflow automation
 - **ARENA_MODEL_TROUBLESHOOTING.md**: Model comparison issues

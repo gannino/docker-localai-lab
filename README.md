@@ -20,7 +20,7 @@ By using this software, you acknowledge and accept these terms.
 
 **New to this?** Start here: **[📖 Complete Beginner's Guide](GETTING_STARTED.md)**
 
-**Have questions?** Check the **[❓ FAQ](FAQ.md)**
+**Have questions?** Check the **[❓ FAQ](docs/FAQ.md)**
 
 ## ⚡ Quick Start (Experienced Users)
 
@@ -130,7 +130,7 @@ After setup, access your services at:
    - Go to http://localhost:5678
    - Create your admin account
    - Start building AI-powered workflows
-   - Import example workflows from the AI_WORKFLOW_SETUP_GUIDE.md
+   - Explore the workflow templates and examples
 
 ## 🤖 AI Features
 
@@ -391,9 +391,12 @@ The system uses **Let's Encrypt** with **Hurricane Electric DNS challenge**:
 ## 📖 Additional Resources
 
 - **[🚀 Complete Beginner's Guide](GETTING_STARTED.md)**: Step-by-step setup for newcomers
-- **[❓ Frequently Asked Questions](FAQ.md)**: Common questions and solutions
-- **[🏗️ System Architecture](ARCHITECTURE.md)**: How everything works together
-- **[🔐 LDAP Authentication](LDAP_AUTHENTICATION.md)**: Enterprise LDAP configuration guide
+- **[❓ Frequently Asked Questions](docs/FAQ.md)**: Common questions and solutions
+- **[🏗️ System Architecture](docs/ARCHITECTURE.md)**: How everything works together
+- **[💻 VS Code LLM Integration](docs/VSCODE_LLM_INTEGRATION.md)**: Setup AI coding assistant with local models
+- **[🔐 LDAP Authentication](docs/LDAP_AUTHENTICATION.md)**: Enterprise LDAP configuration guide
+- **[🗺️ Development Roadmap](docs/ROADMAP.md)**: Future features and development plans
+- **[🌐 Public Tunnel Guide](docs/PUBLIC_TUNNEL_GUIDE.md)**: Expose services securely to the internet
 - **Makefile**: Advanced development commands
 
 ## 🆘 Getting Help

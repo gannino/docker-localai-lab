@@ -15,10 +15,16 @@ A unified Docker infrastructure for local macOS development with AI-powered serv
 local-ai-lab/
 ├── 📄 README.md                    # Main documentation
 ├── 📄 GETTING_STARTED.md           # Complete beginner's guide
-├── 📄 FAQ.md                       # Common questions & solutions
-├── 📄 ARCHITECTURE.md              # System architecture with diagrams
 ├── 📄 CONTRIBUTING.md              # Developer setup guide
 ├── 📄 LICENSE                      # MIT License
+├── 📁 docs/                        # Documentation folder
+│   ├── 📄 FAQ.md                   # Common questions & solutions
+│   ├── 📄 ARCHITECTURE.md          # System architecture with diagrams
+│   ├── 📄 ROADMAP.md               # Development roadmap
+│   ├── 📄 VSCODE_LLM_INTEGRATION.md # VS Code AI setup
+│   ├── 📄 LDAP_AUTHENTICATION.md   # Enterprise LDAP guide
+│   ├── 📄 PUBLIC_TUNNEL_GUIDE.md   # Public access setup
+│   └── 📄 PROJECT_SUMMARY.md       # This file
 ├── 🐳 docker-compose.yml           # Production service definitions
 ├── 🐳 docker-compose.local.yml     # Local development overrides
 ├── ⚙️ Makefile                     # Consolidated management commands
