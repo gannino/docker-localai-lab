@@ -564,7 +564,7 @@ test: ## Run test suite
 	echo "🌐 Testing Docker network..."; \
 	if docker network create traefik-public 2>/dev/null || docker network inspect traefik-public >/dev/null 2>&1; then test_result 0 "traefik-public network available"; else test_result 1 "Failed to create traefik-public network"; fi; \
 	echo "📚 Testing documentation..."; \
-	for doc in README.md GETTING_STARTED.md FAQ.md ARCHITECTURE.md; do \
+	for doc in README.md GETTING_STARTED.md docs/FAQ.md docs/ARCHITECTURE.md; do \
 		if [ -f "$$doc" ]; then test_result 0 "$$doc exists"; else test_result 1 "$$doc missing"; fi; \
 	done; \
 	echo ""; echo "🏁 Test Results"; echo "==============="; \
