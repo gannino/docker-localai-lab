@@ -61,7 +61,72 @@ Extension ID: Continue.continue
 - Refactoring suggestions
 - Works completely offline
 
-#### 2. Codeium - Free AI Assistant
+#### 2. Cline - Autonomous AI Agent ✨ **Alternative**
+```
+Extension ID: saoudrizwan.claude-dev
+```
+**Why**: Autonomous agent with Plan & Act workflow, transparent decision-making
+
+**Setup**:
+1. Install Cline extension
+2. Configure API key (Claude, OpenAI, or local models)
+3. Grant file system permissions when prompted
+
+**Features**:
+- **Plan Mode**: AI analyzes and proposes strategy without changing code
+- **Act Mode**: Autonomous execution after user approval
+- Terminal command execution
+- Multi-file refactoring
+- Cost tracking with token counts
+
+### Continue vs Cline: Key Differences
+
+| Feature | Continue | Cline |
+|---------|----------|-------|
+| **Philosophy** | Governance-first, granular control | Autonomy-first, strategic planning |
+| **Workflow** | Generate → Show diff → User approves each change | Plan → User approves strategy → Execute autonomously |
+| **Multi-file changes** | Requires approval per file | Single approval for entire strategy |
+| **Terminal access** | No command execution | Can run tests, linting, builds |
+| **IDE support** | VS Code + JetBrains + CLI | VS Code only |
+| **Best for** | Teams, compliance, audit trails | Solo developers, large refactoring |
+| **Autonomy level** | Manual approval per change | Autonomous execution after plan approval |
+| **Enterprise features** | Team configuration, governance | Transparent cost tracking |
+
+### When to Choose Continue:
+✅ You need granular control over every code change
+✅ Working in teams with compliance requirements
+✅ Using multiple IDEs (PyCharm, IntelliJ, WebStorm)
+✅ Need audit trails for code changes
+✅ Prefer step-by-step approval workflow
+✅ Want centralized team configuration
+
+### When to Choose Cline:
+✅ You trust AI to execute multi-step plans autonomously
+✅ Working on large refactoring projects (20+ files)
+✅ Want transparent cost tracking (token counts)
+✅ Need terminal command execution (testing, building)
+✅ Prefer "plan once, execute without interruption"
+✅ Solo developer or small team (<5 people)
+
+### Example Workflow Comparison
+
+**Task**: Refactor authentication across 15 files
+
+**With Continue**:
+1. Describe task → Continue generates code for file 1 → User approves
+2. Continue generates code for file 2 → User approves
+3. Repeat for all 15 files (15 approval steps)
+4. Manually run tests and fix issues
+5. **Time**: ~30 minutes of active user involvement
+
+**With Cline**:
+1. Describe task → Cline analyzes codebase (Plan Mode)
+2. Cline proposes strategy: "Refactor files A-C first, then D-O"
+3. User reviews plan and approves once
+4. Cline executes autonomously, runs tests, fixes failures
+5. **Time**: ~5 minutes of user involvement
+
+#### 3. Codeium - Free AI Assistant
 ```
 Extension ID: Codeium.codeium
 ```

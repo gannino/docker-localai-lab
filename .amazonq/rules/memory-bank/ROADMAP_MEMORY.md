@@ -1,261 +1,330 @@
-# Memory Bank - Local AI Lab Roadmap
+# Memory Bank - Local AI Lab Roadmap (Updated 2026)
 
 ## 🎯 Project Vision
-Transform Local AI Lab into a comprehensive, production-ready AI development platform with vector databases, observability, multi-provider support, and public exposure capabilities.
+Transform Local AI Lab into a comprehensive, production-ready AI development platform with vector databases, observability, multi-provider support, and enterprise capabilities.
 
-## 📅 Development Phases
+## 📅 Development Phases (Updated 2026 Timeline)
 
-### Phase 1: Foundation Layer (Q1 2024) ✨ PRIORITY
-**Goal**: Essential infrastructure for RAG and vector search
+### Phase 1: Foundation & Observability (Q1 2026) ✨ PRIORITY
+**Goal**: Production-ready monitoring + vector search capabilities
+**Duration**: 3 weeks (15 days)
+**Team**: 1 developer
 
-#### 1.1 Vector Database - Qdrant (Port 6333)
-- **Purpose**: Enable RAG, semantic search, AI memory
-- **Integration**: Open WebUI document Q&A, N8N vector workflows, Dify knowledge bases
-- **Effort**: 2 days
+#### 1.1 Infrastructure Monitoring - Prometheus + Grafana
+- **Purpose**: Establish performance baseline before adding complexity
+- **Integration**: Docker metrics, service health dashboards, alert rules
+- **Effort**: 4 days (2 dev + 0.8 test + 0.6 docs + buffer)
 - **Status**: Planned
 
-#### 1.2 Lightweight Vector DB - Chroma (Port 8000)
-- **Purpose**: Quick RAG prototyping, testing alternative
-- **Integration**: Jupyter experiments, development testing
-- **Effort**: 1 day
+#### 1.2 Vector Database - Qdrant
+- **Purpose**: Foundation for RAG, semantic search, AI memory
+- **Integration**: Open WebUI document Q&A, N8N vector workflows, future Dify
+- **Effort**: 4 days (2 dev + 0.8 test + 0.6 docs + buffer)
+- **Dependencies**: Monitoring (to track performance)
 
-#### 1.3 Public Tunnel - Cloudflare Tunnel
-- **Purpose**: Secure public access without port forwarding
-- **Integration**: All services via Traefik
-- **Features**: Zero-trust access, automatic HTTPS, access policies, no firewall changes
-- **Effort**: 1 day
-- **Cost**: Free
+#### 1.3 Cost Tracking Dashboard
+- **Purpose**: Users must understand resource consumption
+- **Integration**: Track local model inference costs/tokens, usage patterns
+- **Effort**: 3 days (2 dev + 0.6 test + 0.4 docs)
+- **Dependencies**: Monitoring infrastructure
 
-### Phase 2: Observability & Monitoring (Q1 2024) ✨ PRIORITY
-**Goal**: Track AI usage, costs, and system performance
-
-#### 2.1 LLM Observability - Langfuse (Port 3001)
-- **Purpose**: Debug prompts, track costs, analyze performance
-- **Integration**: Open WebUI tracing, N8N workflow monitoring, LiteLLM proxy integration
-- **Dependencies**: PostgreSQL (existing)
+#### 1.4 Testing & Documentation Sprint
+- **Purpose**: Prevent technical debt accumulation
+- **Deliverable**: Runbooks for 5 common issues, performance baseline, health checks
 - **Effort**: 3 days
 
-#### 2.2 Infrastructure Monitoring - Grafana + Prometheus (Ports 3003, 9090)
-- **Purpose**: System metrics, resource usage, alerts
-- **Integration**: Docker metrics, service health dashboards, GPU/CPU monitoring
-- **Effort**: 2 days
+**Phase 1 Success Criteria**:
+- [ ] Platform setup time <5 minutes
+- [ ] All service metrics visible in Grafana
+- [ ] 1000+ documents stored in Qdrant
+- [ ] Cost/token usage tracking operational
+- [ ] Troubleshooting runbooks available
 
-#### 2.3 Log Aggregation - Loki (Port 3100) [Optional]
-- **Purpose**: Centralized logging, log search
-- **Integration**: Grafana dashboards
-- **Dependencies**: Grafana
-- **Effort**: 1 day
+### Phase 2: AI Platform & Multi-Provider Support (Q2 2026) ✨ PRIORITY
+**Goal**: Enable production AI app development
+**Duration**: 4 weeks (18 days)
+**Team**: 1 developer
 
-### Phase 3: Advanced AI Platform (Q2 2024)
-**Goal**: No-code AI app builders and multi-provider support
-
-#### 3.1 AI App Builder - Dify (Port 3000) ✨ PRIORITY
-- **Purpose**: Build production AI apps visually
-- **Integration**: Qdrant for RAG, Ollama for local models, LiteLLM for cloud models
-- **Dependencies**: Qdrant, PostgreSQL
-- **Effort**: 3 days
-
-#### 3.2 LLM Gateway - LiteLLM Proxy (Port 4000) ✨ PRIORITY
+#### 2.1 LLM Gateway - LiteLLM Proxy
 - **Purpose**: Unified API for 100+ providers, load balancing
-- **Integration**: Replace/enhance ollama-proxy, Open WebUI multi-provider, N8N cloud model access
-- **Effort**: 2 days
+- **Integration**: Replace/enhance ollama-proxy, multi-provider support, cost tracking
+- **Effort**: 6 days (3 dev + 2 test + 1 docs)
+- **Dependencies**: Phase 1 monitoring
 
-#### 3.3 Low-Code AI - Flowise (Port 3002)
-- **Purpose**: Drag-and-drop LangChain flows
-- **Integration**: Qdrant vector store, Ollama models, quick prototyping
-- **Effort**: 2 days
+#### 2.2 AI App Builder - Dify
+- **Purpose**: Build production AI apps visually
+- **Integration**: Qdrant for RAG, LiteLLM for models, user management
+- **Effort**: 8 days (4 dev + 2.5 test + 1.5 docs)
+- **Dependencies**: Qdrant (Phase 1), LiteLLM (Phase 2.1)
 
-### Phase 4: Development Tools (Q2 2024)
-**Goal**: Experimentation and development environments
+#### 2.3 CI/CD Pipeline
+- **Purpose**: Enable safe deployments and team development
+- **Integration**: GitHub Actions/GitLab CI, automated testing, versioning
+- **Effort**: 4 days (2 dev + 1 test + 1 docs)
+- **Dependencies**: None
 
-#### 4.1 Data Science - Jupyter Lab (Port 8888)
+**Phase 2 Success Criteria**:
+- [ ] Multi-provider AI routing operational
+- [ ] 3+ AI apps built with Dify
+- [ ] CI/CD pipeline deploying safely
+- [ ] Cost tracking across providers
+- [ ] RAG workflows with Qdrant integration
+
+### Phase 3: Development Tools & Experimentation (Q3 2026)
+**Goal**: Support iterative AI development and prototyping
+**Duration**: 3 weeks (8 days core, 12 with advanced vector DB)
+**Team**: 1 developer
+
+#### 3.1 Data Science Environment - Jupyter Lab
 - **Purpose**: Model testing, data exploration, tutorials
-- **Integration**: Access to all services, shared files mount, Python AI libraries
-- **Effort**: 1 day
+- **Integration**: Pre-configured AI libraries, access to all services
+- **Effort**: 2 days (1 dev + 0.5 test + 0.5 docs)
+- **Dependencies**: None
 
-#### 4.2 Code Editor - VS Code Server (Port 8443)
+#### 3.2 Browser IDE - VS Code Server
 - **Purpose**: Browser-based development environment
-- **Integration**: Access to Docker socket, Git integration, extension support
-- **Effort**: 1 day
+- **Integration**: Docker socket access, Git integration, extensions
+- **Effort**: 2 days (1 dev + 0.5 test + 0.5 docs)
+- **Dependencies**: None
 
-#### 4.3 API Testing - Hoppscotch (Port 3333)
-- **Purpose**: Test AI APIs, debug integrations
-- **Integration**: All service APIs
-- **Effort**: 1 day
+#### 3.3 Advanced Vector Database (Choose One)
+- **Purpose**: Enterprise-scale vector operations (optional upgrade)
+- **Options**: Weaviate OR Milvus (not both)
+- **Integration**: Migration guide from Qdrant, performance benchmarks
+- **Effort**: 4 days (2 dev + 1.5 test + 0.5 docs)
+- **Dependencies**: Qdrant stable (Phase 1)
 
-### Phase 5: Enterprise Features (Q3 2024)
-**Goal**: Advanced vector databases and enterprise capabilities
+#### 3.4 Low-Code AI Workflows - Flowise (Deferred)
+- **Status**: Evaluate user demand in 2027+
+- **Purpose**: Drag-and-drop LangChain flows
+- **Note**: Only implement if users specifically request
 
-#### 5.1 Advanced Vector DB - Milvus (Port 19530)
-- **Purpose**: Large-scale embeddings, multi-tenant RAG
-- **Dependencies**: etcd, MinIO
-- **Effort**: 3 days
+**Phase 3 Success Criteria**:
+- [ ] Jupyter Lab with example notebooks
+- [ ] VS Code Server browser access
+- [ ] Advanced vector DB option available
+- [ ] Development environment functional
 
-#### 5.2 Vector DB with Modules - Weaviate (Port 8082)
-- **Purpose**: Built-in vectorization, hybrid search, GraphQL
-- **Integration**: Knowledge graphs + vector search
-- **Effort**: 2 days
+### Phase 4: Enterprise & Production Hardening (Q4 2026)
+**Goal**: Production deployment and team collaboration
+**Duration**: 4 weeks (10.5 days core, 17.5 with Kubernetes)
+**Team**: 1 developer
 
-#### 5.3 Secrets Management - Vault (Port 8200)
-- **Purpose**: Secure API key storage, rotation
-- **Integration**: All services with API keys
-- **Effort**: 2 days
+#### 4.1 Secrets Management - Vault
+- **Purpose**: Secure API key storage and rotation
+- **Integration**: All services with API keys, audit logging
+- **Effort**: 3.5 days (2 dev + 1 test + 0.5 docs)
+- **Dependencies**: None
 
-## 🎯 Priority Matrix
+#### 4.2 Multi-User & RBAC
+- **Purpose**: Enable team use without security risks
+- **Integration**: User authentication, role-based access, project isolation
+- **Effort**: 5 days (3 dev + 1.5 test + 0.5 docs)
+- **Dependencies**: Vault (secure session management)
+
+#### 4.3 Public Access & Tunneling
+- **Purpose**: Secure public access without port forwarding
+- **Options**: Cloudflare Tunnel (recommended), Tailscale Funnel, LocalTunnel
+- **Effort**: 2 days (1 dev + 0.5 test + 0.5 docs)
+- **Dependencies**: None
+
+#### 4.4 Kubernetes Export (Stretch Goal)
+- **Purpose**: Enterprise deployment path
+- **Integration**: Docker Compose → Helm charts, EKS/GKE/AKS docs
+- **Effort**: 7 days (4 dev + 2 test + 1 docs)
+- **Dependencies**: All previous phases stable
+
+**Phase 4 Success Criteria**:
+- [ ] Vault managing API keys securely
+- [ ] Multi-user access with RBAC
+- [ ] Public access via secure tunneling
+- [ ] Kubernetes deployment option (optional)
+- [ ] Platform ready for team deployment
+
+## 🎯 Priority Matrix (Updated)
 
 ### Must-Have (Phase 1-2)
-1. **Qdrant** - Vector database foundation
-2. **Cloudflare Tunnel** - Public exposure
-3. **Langfuse** - LLM observability
-4. **Grafana + Prometheus** - Infrastructure monitoring
+1. **Prometheus + Grafana** - Infrastructure monitoring baseline
+2. **Qdrant** - Vector database foundation
+3. **Cost Tracking** - Resource usage visibility
+4. **LiteLLM** - Multi-provider gateway
+5. **Dify** - AI app builder
 
 ### High-Value (Phase 3)
-5. **Dify** - AI app builder
-6. **LiteLLM** - Multi-provider gateway
-7. **Flowise** - Low-code AI workflows
+6. **Jupyter Lab** - Data science environment
+7. **VS Code Server** - Browser IDE
+8. **Advanced Vector DB** - Enterprise option (choose one)
 
-### Nice-to-Have (Phase 4-5)
-8. **Jupyter Lab** - Experimentation
-9. **Milvus/Weaviate** - Advanced vector DBs
-10. **VS Code Server** - Browser IDE
+### Nice-to-Have (Phase 4)
+9. **Vault** - Secrets management
+10. **Multi-user + RBAC** - Team collaboration
+11. **Public Access** - Secure tunneling
+12. **Kubernetes** - Enterprise deployment (optional)
 
-## 🔗 Service Integration Architecture
+## 📊 Implementation Timeline (Revised)
+
+### Q1 2026 (Jan-Mar): Foundation & Observability
+- Week 1-2: Prometheus + Grafana setup
+- Week 3-4: Qdrant integration + testing
+- Week 5-6: Cost tracking + documentation
+- Week 7-8: Testing sprint + runbooks
+
+### Q2 2026 (Apr-Jun): AI Platform Development
+- Week 1-2: LiteLLM proxy + migration
+- Week 3-4: Dify integration + examples
+- Week 5-6: CI/CD pipeline setup
+- Week 7-8: Integration testing + docs
+
+### Q3 2026 (Jul-Sep): Development Tools
+- Week 1-2: Jupyter Lab + VS Code Server
+- Week 3-4: Advanced vector DB (optional)
+- Week 5-6: Documentation + examples
+
+### Q4 2026 (Oct-Dec): Enterprise Hardening
+- Week 1-2: Vault + secrets management
+- Week 3-4: Multi-user + RBAC
+- Week 5-6: Public access + tunneling
+- Week 7-8: Kubernetes export (optional)
+
+## 🔗 Service Integration Architecture (Updated)
 
 ```
 Public Access Layer
   Cloudflare Tunnel → Traefik → Services
 
 Application Layer
-  Open WebUI | Dify | Flowise | N8N | Node-RED
+  Open WebUI | Dify | N8N | Node-RED | Jupyter
 
 AI Gateway Layer
   LiteLLM Proxy → Ollama | OpenAI | Anthropic | etc.
 
 Data Layer
-  Qdrant | Chroma | PostgreSQL | Milvus | Weaviate
+  Qdrant | PostgreSQL | Advanced Vector DB (optional)
 
 Observability Layer
-  Langfuse | Grafana | Prometheus | Loki
+  Grafana | Prometheus | Cost Tracking | Vault
 ```
 
-## 📊 Implementation Timeline
+## 💾 Data Storage Map (Updated)
+| Data Type | Storage Location | Backup Method |
+|-----------|------------------|---------------|
+| N8N workflows & credentials | PostgreSQL + `{folder-name}_n8n_data` volume | `make backup` |
+| WebUI conversations | SQLite + `{folder-name}_webui_data` volume | `make backup` |
+| Qdrant vectors | `{folder-name}_qdrant_data` volume | `make backup` |
+| Grafana dashboards | `{folder-name}_grafana_data` volume | `make backup` |
+| Vault secrets | `{folder-name}_vault_data` volume | `make backup` |
+| SSL certificates | `{folder-name}_traefik_data` volume | `make backup` |
+| Shared files | `local-files/` directory | `make backup` |
 
-### Q1 2024 (Weeks 1-12)
-- Week 1-2: Qdrant + Chroma
-- Week 3-4: Cloudflare Tunnel + Tailscale
-- Week 5-6: Langfuse
-- Week 7-8: Grafana + Prometheus
-- Week 9-10: Dify
-- Week 11-12: LiteLLM
-
-### Q2 2024 (Weeks 13-24)
-- Week 13-14: Flowise
-- Week 15-16: Jupyter Lab
-- Week 17-18: VS Code Server
-- Week 19-20: Hoppscotch
-- Week 21-22: Milvus
-- Week 23-24: Weaviate
-
-### Q3 2024 (Weeks 25-36)
-- Week 25-26: Vault
-- Week 27-28: Advanced integrations
-- Week 29-30: Performance optimization
-- Week 31-32: Documentation updates
-- Week 33-34: Testing & QA
-- Week 35-36: Production hardening
-
-## 🎓 Learning Path
-
-### Beginner → Intermediate
-1. Start with existing stack (Open WebUI, N8N)
-2. Add Qdrant for RAG experiments
-3. Set up Cloudflare Tunnel for sharing
-4. Add Langfuse to understand AI usage
-
-### Intermediate → Advanced
-5. Deploy Dify for production apps
-6. Add LiteLLM for multi-provider access
-7. Set up Grafana for monitoring
-8. Experiment with Jupyter Lab
-
-### Advanced → Expert
-9. Deploy Milvus for large-scale RAG
-10. Add Vault for secrets management
-11. Build custom integrations
-12. Optimize for production workloads
-
-## 🚀 Future Make Commands
+## 🔧 Essential Make Commands (Future)
 
 ```bash
-# Install vector database
-make install-qdrant
+# Phase 1: Foundation
+make install-monitoring     # Prometheus + Grafana
+make install-qdrant        # Vector database
+make install-cost-tracking # Usage monitoring
 
-# Set up public tunnel
-make setup-cloudflare-tunnel
+# Phase 2: AI Platform
+make install-litellm       # Multi-provider gateway
+make install-dify          # AI app builder
+make setup-cicd           # CI/CD pipeline
 
-# Add observability
-make install-langfuse
+# Phase 3: Development Tools
+make install-jupyter       # Data science environment
+make install-vscode        # Browser IDE
+make install-advanced-vectordb # Enterprise vector DB
 
-# Deploy AI app builder
-make install-dify
+# Phase 4: Enterprise
+make install-vault         # Secrets management
+make setup-multiuser      # RBAC and user management
+make setup-public-access  # Secure tunneling
+make export-kubernetes    # K8s deployment
 
 # Full stack deployment
 make install-all-phase1
 make install-all-phase2
 make install-all-phase3
+make install-all-phase4
 ```
 
-## 📝 Success Metrics
+## 🚨 Common Issues & Solutions (Updated)
 
-### Phase 1-2 (Foundation)
-- [ ] RAG working with Qdrant
-- [ ] Services accessible via Cloudflare Tunnel
-- [ ] Langfuse tracking all AI calls
-- [ ] Grafana dashboards showing metrics
+### Phase 1 Issues
+- **Grafana not showing metrics**: Check Prometheus scraping config
+- **Qdrant connection failed**: Verify vector DB is running and accessible
+- **Cost tracking missing data**: Check API integration with AI services
 
-### Phase 3-4 (Advanced)
-- [ ] 3+ AI apps built with Dify
-- [ ] LiteLLM routing to 3+ providers
-- [ ] Jupyter notebooks for experimentation
-- [ ] All services monitored and logged
+### Phase 2 Issues
+- **LiteLLM routing errors**: Verify provider API keys and endpoints
+- **Dify apps not working**: Check Qdrant integration and model access
+- **CI/CD pipeline failing**: Review test configurations and dependencies
 
-### Phase 5-6 (Enterprise)
-- [ ] Multi-tenant RAG with Milvus
-- [ ] Secrets managed in Vault
-- [ ] Production-ready deployment
-- [ ] Complete documentation
+### Phase 3 Issues
+- **Jupyter kernels not starting**: Check Python environment and libraries
+- **VS Code Server not accessible**: Verify port forwarding and authentication
+- **Vector DB migration issues**: Follow migration guide step-by-step
 
-## 🔄 Public Tunnel Options
+### Phase 4 Issues
+- **Vault unsealing problems**: Check seal keys and initialization
+- **RBAC permissions denied**: Review user roles and service configurations
+- **Public access blocked**: Check tunnel configuration and DNS settings
+
+## 📝 Success Metrics (Updated)
+
+### Phase 1 (Foundation & Observability)
+- Platform setup time: <5 minutes
+- Service uptime: >99%
+- Documents in Qdrant: 1000+
+- Monitoring coverage: 100% of services
+- Runbook completion: 5 common issues
+
+### Phase 2 (AI Platform Development)
+- AI providers supported: 3+
+- Apps built with Dify: 3+
+- CI/CD deployment success rate: >95%
+- Cost tracking accuracy: 100%
+- RAG query response time: <2s
+
+### Phase 3 (Development Tools)
+- Jupyter notebooks available: 10+
+- VS Code extensions working: Core set
+- Advanced vector DB performance: 2x Qdrant (if applicable)
+- Development workflow time: <30min setup
+
+### Phase 4 (Enterprise Hardening)
+- Secrets managed by Vault: 100%
+- User roles configured: 3+ (admin, analyst, user)
+- Public access security: Zero-trust
+- Kubernetes deployment: Functional (if implemented)
+- Team onboarding time: <1 hour
+
+## 🔄 Public Tunnel Options (Updated)
 
 ### Cloudflare Tunnel ✨ Recommended
 - **Cost**: Free
 - **Features**: Zero-trust access, automatic HTTPS, DDoS protection, access policies
-- **Setup**: 1 day
+- **Setup**: Phase 4.3 (2 days)
 
 ### Tailscale Funnel
 - **Cost**: Free (up to 100 devices)
 - **Features**: Peer-to-peer VPN, easy team access, no public exposure
-- **Setup**: 1 day
-
-### Bore (Alternative)
-- **Cost**: Free
-- **Features**: Open source, self-hosted option, TCP tunneling
-- **Setup**: 1 day
+- **Setup**: Phase 4.3 alternative
 
 ### LocalTunnel (Backup)
 - **Cost**: Free
 - **Features**: No signup required, custom subdomains, simple CLI
-- **Setup**: 0.5 days
+- **Setup**: Phase 4.3 fallback option
 
-## 📚 Key Resources
+## 📚 Key Resources (Updated)
 - [Qdrant Docs](https://qdrant.tech/documentation/)
-- [Langfuse Docs](https://langfuse.com/docs)
 - [Dify Docs](https://docs.dify.ai/)
-- [Cloudflare Tunnel Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
 - [LiteLLM Docs](https://docs.litellm.ai/)
+- [Grafana Docs](https://grafana.com/docs/)
+- [Vault Docs](https://www.vaultproject.io/docs)
+- [Cloudflare Tunnel Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
 
 ---
-**Last Updated**: 2024
-**Status**: Active Development
-**Next Review**: End of Q1 2024
+**Last Updated**: January 2026
+**Status**: Active Development - Realistic Timeline
+**Next Review**: End of Q1 2026
 **Purpose**: AI Assistant Development Planning Reference
