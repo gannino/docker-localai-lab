@@ -41,22 +41,13 @@ jobs:
 
       - name: Setup Docker Model Runner
         run: |
-          # Install Docker Model Runner
           docker model install-runner --host 0.0.0.0 --port 12434
-          docker model status
-
-          # Pull and run small AI model
           docker model pull granite3.1:2b
           docker model run granite3.1:2b --detach
           docker model ps
 
       - name: Start services
-      - name: Start services
-        run: |
-          # Start core services with local port exposure
-          docker network create traefik-public 2>/dev/null || true
-          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d \
-            traefik portainer n8n-db n8n nodered ollama-proxy webui
+        run: make local-start
 
       - name: Run smoke tests
         run: |
@@ -113,9 +104,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
-          docker model unload granite3.1:2b || true
+        run: make local-stop
 
   security:
     runs-on: ubuntu-latest
