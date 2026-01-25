@@ -1,6 +1,14 @@
 # Docker Infrastructure for Local Development
 
-A unified Docker infrastructure setup optimized for local macOS development with AI-powered services, featuring Open WebUI, N8N workflow automation, Traefik reverse proxy, and Docker Model Runner integration.
+A unified Docker infrastructure setup optimized for local macOS development with AI-powered services, featuring:
+- Open WebUI for AI interactions
+- N8N workflow automation
+- Traefik reverse proxy
+- Docker Model Runner integration
+- Local development optimization
+- Comprehensive logging and monitoring
+
+This setup provides a flexible and secure environment for running AI-powered applications locally.
 
 ## ⚠️ **DISCLAIMER**
 
@@ -144,6 +152,16 @@ After setup, access your services at:
 - **File Processing**: Upload and process documents with AI
 
 ## 🛠️ Management Commands
+
+### Recent Improvements (v2.0)
+- ✅ **Modular Makefile** - Split into logical modules for easier maintenance
+- ✅ **Automated Backups** - Schedule daily backups with `make setup-auto-backup`
+- ✅ **Backup Verification** - Validate backups with `make verify-backup`
+- ✅ **Environment-Aware Tests** - Smoke tests detect local vs production
+- ✅ **Log Rotation** - Automatic 30MB limit per service
+- ✅ **Rate Limiting** - 100 req/s protection on public services
+- ✅ **Health Monitoring** - Comprehensive diagnostics with `make health-detailed`
+- ✅ **Performance Benchmarks** - Test response times with `make benchmark`
 
 ### Quick Commands (All via Makefile)
 ```bash
@@ -393,11 +411,12 @@ The system uses **Let's Encrypt** with **Hurricane Electric DNS challenge**:
 - **[🚀 Complete Beginner's Guide](GETTING_STARTED.md)**: Step-by-step setup for newcomers
 - **[❓ Frequently Asked Questions](docs/FAQ.md)**: Common questions and solutions
 - **[🏗️ System Architecture](docs/ARCHITECTURE.md)**: How everything works together
+- **[🔒 Security Guide](docs/SECURITY.md)**: Security best practices and hardening
+- **[🔼 Upgrade Guide](docs/UPGRADE.md)**: Version upgrades and migrations
 - **[💻 VS Code LLM Integration](docs/VSCODE_LLM_INTEGRATION.md)**: Setup AI coding assistant with local models
 - **[🔐 LDAP Authentication](docs/LDAP_AUTHENTICATION.md)**: Enterprise LDAP configuration guide
 - **[🗺️ Development Roadmap](docs/ROADMAP.md)**: Future features and development plans
 - **[🌐 Public Tunnel Guide](docs/PUBLIC_TUNNEL_GUIDE.md)**: Expose services securely to the internet
-- **Makefile**: Advanced development commands
 
 ## 🆘 Getting Help
 

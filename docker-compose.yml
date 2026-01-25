@@ -1,4 +1,11 @@
 ---
+# Shared logging configuration
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 volumes:
   traefik_data:
   portainer_data:
@@ -6,23 +13,24 @@ volumes:
   db_data:
   webui_data:
   nodered_data:
-  codeprojectai_datastore:
-  codeprojectai_modules:
-  codeprojectai_models:
-  ollama_data:
+  # CodeProject.AI requires 3 separate volumes for proper operation:
+  codeprojectai_datastore:  # Application data and settings
+  codeprojectai_modules:    # Installed AI modules
+  codeprojectai_models:     # Downloaded AI models (largest)
 
 networks:
-  traefik-public:
+  traefik-public:  # External-facing services with SSL
     external: true
-  agent-network:
+  agent-network:   # Portainer agent communication
     attachable: true
-  default:
+  default:         # Internal service communication
 
 services:
   # Traefik Reverse Proxy
   traefik:
     image: ${TRAEFIK_IMAGE:-traefik:latest}
     restart: unless-stopped
+    logging: *default-logging
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
@@ -40,7 +48,7 @@ services:
       - "--experimental.plugins.ldapAuth.modulename=github.com/wiltonsr/ldapAuth"
       - "--experimental.plugins.ldapAuth.version=v0.1.11"
       - "--certificatesresolvers.le-dns.acme.dnschallenge.provider=hurricane"
-      - "--certificatesresolvers.le-dns.acme.dnschallenge.propagation.delayBeforeChecks=150s"
+      - "--certificatesresolvers.le-dns.acme.dnschallenge.propagation.delayBeforeChecks=300s"
       - "--certificatesresolvers.le-dns.acme.email=${SSL_EMAIL}"
       - "--certificatesresolvers.le-dns.acme.storage=/letsencrypt/acme-dns.json"
       - "--serverstransport.insecureskipverify=true"
@@ -74,6 +82,7 @@ services:
   portainer:
     image: ${PORTAINER_IMAGE:-portainer/portainer-ce:latest}
     restart: unless-stopped
+    logging: *default-logging
     command: -H tcp://tasks.agent:9001 --tlsskipverify
     volumes:
       - portainer_data:/data
@@ -96,6 +105,13 @@ services:
   n8n-db:
     image: ${POSTGRES_IMAGE:-postgres:15}
     restart: unless-stopped
+    logging: *default-logging
+    command:
+      - postgres
+      - -c
+      - max_connections=200
+      - -c
+      - shared_buffers=256MB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U n8n"]
       interval: 30s
@@ -116,6 +132,7 @@ services:
   n8n:
     image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:latest}
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       n8n-db:
         condition: service_healthy
@@ -176,6 +193,7 @@ services:
   mcp-gateway:
     image: ${MCP_GATEWAY_IMAGE}
     restart: unless-stopped
+    logging: *default-logging
     command:
       - --servers=${MCP_SERVERS:-duckduckgo,google-flights,playwright}
       - --transport=streaming
@@ -205,11 +223,13 @@ services:
   ollama-proxy:
     image: ${NGINX_IMAGE}
     restart: unless-stopped
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     volumes:
       - ./nginx-ollama.conf:/etc/nginx/nginx.conf:ro
     networks:
@@ -231,6 +251,7 @@ services:
   echo:
     image: ${ECHO_IMAGE}
     restart: unless-stopped
+    logging: *default-logging
     # healthcheck not possible for this image
     # healthcheck:
     #   test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
@@ -262,6 +283,7 @@ services:
   codeprojectai:
     image: ${CODEPROJECTAI_IMAGE:-codeproject/ai-server:latest}
     restart: unless-stopped
+    logging: *default-logging
     platform: linux/amd64  # Force x86_64 platform for Rosetta
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5000 || exit 1"]
@@ -296,6 +318,7 @@ services:
   nodered:
     image: ${NODERED_IMAGE:-nodered/node-red:latest}
     restart: unless-stopped
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:1880 || exit 1"]
       interval: 30s
@@ -325,6 +348,10 @@ services:
   webui:
     image: ${WEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
     restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      ollama-proxy:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 30s
@@ -380,3 +407,7 @@ services:
       - traefik.http.routers.webui-https.tls.domains[0].main=${DOMAIN:-app.example.com}
       - traefik.http.routers.webui-https.tls.domains[0].sans=*.${DOMAIN:-app.example.com}
       - traefik.http.services.webui.loadbalancer.server.port=8080
+      # Rate limiting
+      - traefik.http.middlewares.webui-ratelimit.ratelimit.average=100
+      - traefik.http.middlewares.webui-ratelimit.ratelimit.burst=50
+      - traefik.http.routers.webui-https.middlewares=webui-ratelimit
