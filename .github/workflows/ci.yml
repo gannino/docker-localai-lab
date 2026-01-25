@@ -81,7 +81,7 @@ jobs:
           sleep 15
           docker compose logs ollama-proxy
           docker compose ps ollama-proxy
-          curl -sf http://localhost:11435/health || (docker compose logs ollama-proxy && exit 1)
+          curl -sf http://localhost:8082/health || (docker compose logs ollama-proxy && exit 1)
           echo "✅ ollama-proxy is healthy"
 
       - name: Start all services
