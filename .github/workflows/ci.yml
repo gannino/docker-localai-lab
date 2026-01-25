@@ -41,9 +41,9 @@ jobs:
 
       - name: Quick start (setup and start services)
         run: |
-          # Start only core services (skip ollama-proxy, webui, codeprojectai)
+          # Start only core services (skip ollama-proxy, webui, codeprojectai, mcp-gateway)
           docker network create traefik-public 2>/dev/null || true
-          docker compose up -d traefik portainer n8n-db n8n nodered mcp-gateway
+          docker compose up -d traefik portainer n8n-db n8n nodered
 
       - name: Run smoke tests
         run: |
