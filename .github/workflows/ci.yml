@@ -42,9 +42,22 @@ jobs:
       - name: Setup Ollama for testing
         run: |
           docker network create traefik-public 2>/dev/null || true
-          docker run -d --name ollama --network traefik-public ollama/ollama:latest
-          sleep 10
+          docker run -d --name ollama --network traefik-public -p 11434:11434 ollama/ollama:latest
+          echo "Waiting for Ollama to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:11434/api/tags > /dev/null 2>&1; then
+              echo "✅ Ollama is ready on localhost:11434"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
           docker exec ollama ollama pull tinyllama
+          echo "Testing Ollama via localhost..."
+          curl -sf http://localhost:11434/api/tags
+          echo "Testing Ollama via network..."
+          docker run --rm --network traefik-public curlimages/curl:latest \
+            curl -sf http://ollama:11434/api/tags
           docker ps
 
       - name: Start all services
