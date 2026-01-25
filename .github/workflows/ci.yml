@@ -77,7 +77,7 @@ jobs:
           echo "Starting ollama-proxy first to verify connectivity..."
           docker compose -f docker-compose.yml -f docker-compose.local.yml up -d ollama-proxy
           sleep 10
-          docker logs ollama-proxy
+          docker compose logs ollama-proxy
           echo "Starting remaining services..."
           make quick-start
 
