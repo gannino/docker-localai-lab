@@ -72,11 +72,20 @@ jobs:
           fi
           docker ps
 
-      - name: Start all services
+      - name: Use CI nginx config
+        run: cp nginx-ollama-ci.conf nginx-ollama.conf
+
+      - name: Test ollama-proxy with CI config
         run: |
-          echo "Using CI-specific nginx config..."
-          cp nginx-ollama-ci.conf nginx-ollama.conf
-          make quick-start
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d ollama-proxy
+          sleep 15
+          docker compose logs ollama-proxy
+          docker compose ps ollama-proxy
+          curl -sf http://localhost:11435/health || (docker compose logs ollama-proxy && exit 1)
+          echo "✅ ollama-proxy is healthy"
+
+      - name: Start all services
+        run: make quick-start
 
       - name: Run smoke tests
         run: |
