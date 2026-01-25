@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "github.com/contextstream/mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@contextstream/mcp-server"],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
