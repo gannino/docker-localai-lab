@@ -103,8 +103,8 @@ jobs:
         run: |
           echo "Testing AI model inference via ollama-proxy..."
           sleep 10
-          curl -sf http://localhost:11435/api/tags || (docker logs ollama-proxy && exit 1)
-          RESPONSE=$(curl -s http://localhost:11435/api/generate -d '{
+          curl -sf http://localhost:8082/api/tags || (docker compose logs ollama-proxy && exit 1)
+          RESPONSE=$(curl -s http://localhost:8082/api/generate -d '{
             "model": "tinyllama",
             "prompt": "Say hello",
             "stream": false
@@ -114,7 +114,7 @@ jobs:
             echo "✅ AI inference working"
           else
             echo "❌ AI inference failed"
-            docker logs ollama-proxy
+            docker compose logs ollama-proxy
             exit 1
           fi
 
