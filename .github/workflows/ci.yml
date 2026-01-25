@@ -39,11 +39,24 @@ jobs:
       - name: Test Docker Compose validation
         run: make test-config
 
-      - name: Quick start (setup and start services)
+      - name: Setup Docker Model Runner
         run: |
-          # Start only core services with local port exposure
+          # Install Docker Model Runner
+          docker model install-runner --host 0.0.0.0 --port 12434
+          docker model status
+
+          # Pull and run small AI model
+          docker model pull granite3.1:2b
+          docker model run granite3.1:2b --detach
+          docker model ps
+
+      - name: Start services
+      - name: Start services
+        run: |
+          # Start core services with local port exposure
           docker network create traefik-public 2>/dev/null || true
-          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d traefik portainer n8n-db n8n nodered
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d \
+            traefik portainer n8n-db n8n nodered ollama-proxy webui
 
       - name: Run smoke tests
         run: |
@@ -53,7 +66,27 @@ jobs:
           curl -sf http://localhost:5678/healthz || (docker compose logs n8n && exit 1)
           echo "Testing Portainer..."
           curl -sf http://localhost:9000 || (docker compose logs portainer && exit 1)
+          echo "Testing WebUI..."
+          curl -sf http://localhost:8080/health || (docker compose logs webui && exit 1)
           echo "✅ Smoke tests passed"
+
+      - name: Test AI inference (end-to-end)
+        run: |
+          echo "Testing AI model inference via Docker Model Runner..."
+          sleep 30
+          RESPONSE=$(curl -s http://localhost:12434/v1/completions -H "Content-Type: application/json" -d '{
+            "model": "granite3.1:2b",
+            "prompt": "Say hello",
+            "max_tokens": 10
+          }')
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q "choices"; then
+            echo "✅ AI inference working"
+          else
+            echo "❌ AI inference failed"
+            docker logs model-runner
+            exit 1
+          fi
 
       - name: Run integration tests
         run: |
@@ -80,7 +113,9 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
+          docker model unload granite3.1:2b || true
 
   security:
     runs-on: ubuntu-latest
