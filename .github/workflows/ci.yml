@@ -74,11 +74,8 @@ jobs:
 
       - name: Start all services
         run: |
-          echo "Starting ollama-proxy first to verify connectivity..."
-          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d ollama-proxy
-          sleep 10
-          docker compose logs ollama-proxy
-          echo "Starting remaining services..."
+          echo "Using CI-specific nginx config..."
+          cp nginx-ollama-ci.conf nginx-ollama.conf
           make quick-start
 
       - name: Run smoke tests
