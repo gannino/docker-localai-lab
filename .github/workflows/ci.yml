@@ -42,10 +42,7 @@ jobs:
       - name: Setup Ollama for testing
         run: |
           docker network create traefik-public 2>/dev/null || true
-          docker run -d --name ollama --network traefik-public \
-            --network-alias model-runner.docker.internal \
-            -p 11434:11434 -p 80:11434 \
-            ollama/ollama:latest
+          docker run -d --name ollama --network traefik-public ollama/ollama:latest
           sleep 10
           docker exec ollama ollama pull tinyllama
           docker ps
@@ -67,10 +64,10 @@ jobs:
 
       - name: Test AI inference (end-to-end)
         run: |
-          echo "Testing AI model inference via Ollama..."
+          echo "Testing AI model inference via ollama-proxy..."
           sleep 10
-          curl -sf http://localhost:11434/api/tags || (docker logs ollama && exit 1)
-          RESPONSE=$(curl -s http://localhost:11434/api/generate -d '{
+          curl -sf http://localhost:11435/api/tags || (docker logs ollama-proxy && exit 1)
+          RESPONSE=$(curl -s http://localhost:11435/api/generate -d '{
             "model": "tinyllama",
             "prompt": "Say hello",
             "stream": false
@@ -80,7 +77,7 @@ jobs:
             echo "✅ AI inference working"
           else
             echo "❌ AI inference failed"
-            docker logs ollama
+            docker logs ollama-proxy
             exit 1
           fi
 
