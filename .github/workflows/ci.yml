@@ -58,10 +58,28 @@ jobs:
           echo "Testing Ollama via network..."
           docker run --rm --network traefik-public curlimages/curl:latest \
             curl -sf http://ollama:11434/api/tags
+          echo "Testing AI inference..."
+          RESPONSE=$(curl -s http://localhost:11434/api/generate -d '{
+            "model": "tinyllama",
+            "prompt": "Say hello",
+            "stream": false
+          }')
+          if echo "$RESPONSE" | grep -q "response"; then
+            echo "✅ AI inference working before service start"
+          else
+            echo "❌ AI inference failed"
+            exit 1
+          fi
           docker ps
 
       - name: Start all services
-        run: make quick-start
+        run: |
+          echo "Starting ollama-proxy first to verify connectivity..."
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d ollama-proxy
+          sleep 10
+          docker logs ollama-proxy
+          echo "Starting remaining services..."
+          make quick-start
 
       - name: Run smoke tests
         run: |
